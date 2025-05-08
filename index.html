@@ -7,46 +7,101 @@
   </head>
   <body>
     <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable">
-      <!-- Fondo inicial -->
-     <a-sky id="sky" src="M1.png" rotation="0 -130 0"></a-sky>
+      <!-- Fondo actual -->
+      <a-sky id="sky" src="M1.png" rotation="0 -130 0"></a-sky>
+      <!-- Transición -->
+      <a-sky id="sky-fade" visible="false" opacity="0" rotation="0 -130 0"></a-sky>
 
-
-      <!-- Cámara sin a-cursor, pero con raycaster activado -->
+      <!-- Cámara -->
       <a-entity camera look-controls wasd-controls position="0 1.6 0"></a-entity>
-
-      <!-- Hotspot para cambiar a M2.png -->
-      <a-image 
-        src="M2.png"
-        class="clickable"
-        position="3 1.5 -3" 
-        scale="0.5 0.5 0.5"
-        data-img="M2.png"
-        change-image>
-      </a-image>
-
-      <!-- Hotspot para cambiar a M3.png -->
-      <a-image 
-        src="M3.png"
-        class="clickable"
-        position="-3 1.5 -3" 
-        scale="0.5 0.5 0.5"
-        data-img="M3.png"
-        change-image>
-      </a-image>
     </a-scene>
 
-    <!-- Script para cambiar el cielo al hacer clic -->
     <script>
-      AFRAME.registerComponent('change-image', {
-        init: function () {
-          this.el.addEventListener('click', () => {
-            const img = this.el.getAttribute('data-img');
-            const sky = document.querySelector('#sky');
-            sky.setAttribute('src', img);
-            console.log("Cambiando imagen a:", img);
+      const hotspots = {
+        "M1.png": [
+          { img: "M2.png", position: "3 1.5 -3", label: "Ir a Sala", icon: "M2.png" },
+          { img: "M3.png", position: "-3 1.5 -3", label: "Ir a Cocina", icon: "M3.png" }
+        ],
+        "M2.png": [
+          { img: "M1.png", position: "-3 1.5 -3", label: "Volver a Entrada", icon: "M1.png" },
+          { img: "M3.png", position: "3 1.5 -3", label: "Ir a Cocina", icon: "M3.png" }
+        ],
+        "M3.png": [
+          { img: "M1.png", position: "-3 1.5 -3", label: "Volver a Entrada", icon: "M1.png" },
+          { img: "M2.png", position: "3 1.5 -3", label: "Ir a Sala", icon: "M2.png" }
+        ]
+      };
+
+      const scene = document.querySelector("a-scene");
+      const sky = document.querySelector("#sky");
+      const skyFade = document.querySelector("#sky-fade");
+
+      function transitionTo(newImg) {
+        skyFade.setAttribute("src", newImg);
+        skyFade.setAttribute("visible", true);
+        skyFade.setAttribute("opacity", 0);
+
+        skyFade.setAttribute("animation__fadein", {
+          property: "material.opacity",
+          from: 0,
+          to: 1,
+          dur: 1000
+        });
+
+        setTimeout(() => {
+          sky.setAttribute("src", newImg);
+          skyFade.setAttribute("visible", false);
+          skyFade.removeAttribute("animation__fadein");
+          createHotspots(newImg);
+        }, 1000);
+      }
+
+      function createHotspots(imageName) {
+        document.querySelectorAll(".hotspot").forEach(el => el.remove());
+        const data = hotspots[imageName];
+        if (!data) return;
+
+        data.forEach(h => {
+          const wrapper = document.createElement("a-entity");
+          wrapper.setAttribute("position", h.position);
+          wrapper.setAttribute("class", "hotspot");
+
+          const icon = document.createElement("a-image");
+          icon.setAttribute("src", h.icon);
+          icon.setAttribute("scale", "0.5 0.5 0.5");
+          icon.setAttribute("class", "clickable");
+          icon.setAttribute("data-img", h.img);
+          icon.setAttribute("position", "0 0 0");
+
+          // 🔄 Flotar suavemente
+          icon.setAttribute("animation", {
+            property: "position",
+            dir: "alternate",
+            dur: 1000,
+            loop: true,
+            to: "0 0.2 0",
+            easing: "easeInOutSine"
           });
-        }
+
+          icon.addEventListener("click", () => transitionTo(h.img));
+
+          const label = document.createElement("a-text");
+          label.setAttribute("value", h.label);
+          label.setAttribute("align", "center");
+          label.setAttribute("color", "#FFF");
+          label.setAttribute("position", "0 -0.6 0");
+          label.setAttribute("width", "2");
+
+          wrapper.appendChild(icon);
+          wrapper.appendChild(label);
+          scene.appendChild(wrapper);
+        });
+      }
+
+      window.addEventListener("load", () => {
+        createHotspots("M1.png");
       });
     </script>
   </body>
 </html>
+
