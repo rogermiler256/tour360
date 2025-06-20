@@ -1,1 +1,227 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Tour 360 Virtual VIDEO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <style>
+      /* VIDEO CIRCULAR AJUSTADO (40% más grande) */
+#video-circle {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  width: 182px;
+  height: 182px;
+  border-radius: 50%;
+  overflow: hidden;
+  z-index: 1000;
+  box-shadow: 0 0 10px rgba(0,0,0,0.4);
+}
+
+#video-circle video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 600px) {
+  #video-circle {
+    width: 140px;
+    height: 140px;
+  }
+}
+
+/* BOTÓN DE PLAY PEGADO AL CÍRCULO */
+#play-btn {
+  position: fixed;
+  top: calc(10px + 182px - 30px); /* 10px de margen + altura - mitad del botón */
+  left: calc(10px + 182px - 30px);
+  z-index: 1001;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s;
+}
+
+#play-btn:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+@media (max-width: 600px) {
+  #play-btn {
+    top: calc(10px + 140px - 25px);
+    left: calc(10px + 140px - 25px);
+    width: 35px;
+    height: 35px;
+    font-size: 18px;
+  }
+}
+
+    </style>
+  </head>
+  <body>
+
+    <!-- Círculo de video -->
+    <div id="video-circle">
+      <video muted>
+        <source src="PROMOTORA.mp4" type="video/mp4" />
+        Tu navegador no soporta video HTML5.
+      </video>
+    </div>
+
+    <!-- Botón circular de play/pausa -->
+    <button id="play-btn">▶️</button>
+
+    <!-- Escena A-Frame -->
+    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable">
+      <a-sky id="sky" src="M1.png" rotation="0 -130 0"></a-sky>
+      <a-sky id="sky-fade" visible="false" opacity="0" rotation="0 -130 0"></a-sky>
+      <a-entity id="cam" camera look-controls wasd-controls position="0 1.6 0"></a-entity>
+    </a-scene>
+
+    <!-- Hotspot y video logic -->
+    <script>
+      const hotspots = {
+        "M1.png": [
+          { img: "M2.png", position: "3 0.01 -3", label: "Sala" },
+          { img: "M3.png", position: "-3 0.01 -3", label: "Zona BBQ" }
+        ],
+        "M2.png": [
+          { img: "M1.png", position: "-3 0.01 -3", label: "cocina" },
+          { img: "M3.png", position: "3 0.01 -3", label: "Sala" }
+        ],
+        "M3.png": [
+          { img: "M1.png", position: "-3 0.01 -3", label: "Sala" },
+          { img: "M2.png", position: "3 0.01 -3", label: "Sala" }
+        ]
+      };
+
+      const scene = document.querySelector("a-scene");
+      const sky = document.querySelector("#sky");
+      const skyFade = document.querySelector("#sky-fade");
+
+      function transitionTo(newImg) {
+        skyFade.setAttribute("src", newImg);
+        skyFade.setAttribute("visible", true);
+        skyFade.setAttribute("opacity", 0);
+
+        skyFade.setAttribute("animation__fadein", {
+          property: "material.opacity",
+          from: 0,
+          to: 1,
+          dur: 1000
+        });
+
+        setTimeout(() => {
+          sky.setAttribute("src", newImg);
+          skyFade.setAttribute("visible", false);
+          skyFade.removeAttribute("animation__fadein");
+          createHotspots(newImg);
+        }, 1000);
+      }
+
+      function createHotspots(imageName) {
+        document.querySelectorAll(".hotspot").forEach(el => el.remove());
+        const data = hotspots[imageName];
+        if (!data) return;
+
+        data.forEach(h => {
+          const wrapper = document.createElement("a-entity");
+          wrapper.setAttribute("position", h.position);
+          wrapper.setAttribute("class", "hotspot");
+
+          const hitArea = document.createElement("a-circle");
+          hitArea.setAttribute("radius", "1");
+          hitArea.setAttribute("rotation", "-90 0 0");
+          hitArea.setAttribute("material", "color: #fff; opacity: 0.001; transparent: true");
+          hitArea.setAttribute("class", "clickable");
+          hitArea.setAttribute("data-img", h.img);
+          hitArea.addEventListener("click", () => transitionTo(h.img));
+
+          const ring1 = document.createElement("a-ring");
+          ring1.setAttribute("radius-inner", "0.5");
+          ring1.setAttribute("radius-outer", "0.7");
+          ring1.setAttribute("color", "#ffffff");
+          ring1.setAttribute("rotation", "-90 0 0");
+          ring1.setAttribute("material", "shader: flat");
+          ring1.setAttribute("animation", {
+            property: "scale",
+            dir: "alternate",
+            dur: 1000,
+            loop: true,
+            to: "1.2 1.2 1.2",
+            easing: "easeInOutSine"
+          });
+
+          const ring2 = document.createElement("a-ring");
+          ring2.setAttribute("radius-inner", "0.3");
+          ring2.setAttribute("radius-outer", "0.45");
+          ring2.setAttribute("color", "#ffffff");
+          ring2.setAttribute("rotation", "-90 0 0");
+          ring2.setAttribute("material", "shader: flat");
+          ring2.setAttribute("animation", {
+            property: "scale",
+            dir: "alternate",
+            dur: 1000,
+            loop: true,
+            to: "1.15 1.15 1.15",
+            easing: "easeInOutSine"
+          });
+
+          const label = document.createElement("a-text");
+          label.setAttribute("value", h.label);
+          label.setAttribute("align", "center");
+          label.setAttribute("color", "#FFF");
+          label.setAttribute("position", "0 1 0");
+          label.setAttribute("look-at", "#cam");
+          label.setAttribute("width", "4");
+
+          wrapper.appendChild(hitArea);
+          wrapper.appendChild(ring1);
+          wrapper.appendChild(ring2);
+          wrapper.appendChild(label);
+          scene.appendChild(wrapper);
+        });
+      }
+
+      window.addEventListener("load", () => {
+        createHotspots("M1.png");
+      });
+
+      // Video play/pause
+      const video = document.querySelector("#video-circle video");
+      const playBtn = document.querySelector("#play-btn");
+      let isPlaying = false;
+
+      playBtn.addEventListener("click", () => {
+        if (!isPlaying) {
+          video.muted = false;
+          video.play();
+          isPlaying = true;
+          playBtn.textContent = "⏸️";
+        } else {
+          if (video.paused) {
+            video.play();
+            playBtn.textContent = "⏸️";
+          } else {
+            video.pause();
+            playBtn.textContent = "▶️";
+          }
+        }
+      });
+    </script>
+
+  </body>
+</html>
 
