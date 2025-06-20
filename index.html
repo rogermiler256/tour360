@@ -85,7 +85,7 @@
 
     <!-- Escena A-Frame -->
     <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable">
-      <a-sky id="sky" src="3.png" rotation="0 -130 0"></a-sky>
+      <a-sky id="sky" src="M1.png" rotation="0 -130 0"></a-sky>
       <a-sky id="sky-fade" visible="false" opacity="0" rotation="0 -130 0"></a-sky>
       <a-entity id="cam" camera look-controls wasd-controls position="0 1.6 0"></a-entity>
     </a-scene>
@@ -93,17 +93,17 @@
     <!-- Hotspot y video logic -->
     <script>
       const hotspots = {
-        "3.png": [
-          { img: "7.png", position: "3 0.01 -3", label: "Sala" },
-          { img: "1.jpg", position: "-3 0.01 -3", label: "Zona BBQ" }
+        "M1.png": [
+          { img: "M2.png", position: "3 0.01 -3", label: "Sala" },
+          { img: "M3.png", position: "-3 0.01 -3", label: "Zona BBQ" }
         ],
-        "7.png": [
-          { img: "3.png", position: "-3 0.01 -3", label: "cocina" },
-          { img: "1.jpg", position: "3 0.01 -3", label: "Sala" }
+        "M2.png": [
+          { img: "M1.png", position: "-3 0.01 -3", label: "cocina" },
+          { img: "M3.png", position: "3 0.01 -3", label: "Sala" }
         ],
-        "1.jpg": [
-          { img: "3.png", position: "-3 0.01 -3", label: "Sala" },
-          { img: "7.png", position: "3 0.01 -3", label: "Sala" }
+        "M3.png": [
+          { img: "M1.png", position: "-3 0.01 -3", label: "Volver" },
+          { img: "M2.png", position: "3 0.01 -3", label: "Sala" }
         ]
       };
 
@@ -224,4 +224,3 @@
 
   </body>
 </html>
-
